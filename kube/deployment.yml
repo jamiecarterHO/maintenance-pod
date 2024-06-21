@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hof-maintenance
+  labels:
+    project: hof
+  annotations:
+    downscaler/uptime: 'Mon-Sun 00:00-24:00 Europe/London'
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: hof-maintenance
+  template:
+    metadata:
+      labels:
+        project: hof
+        sql-proxy-client: iia
+        name: hof-maintenance
+        app: hof-maintenance
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: hof-maintenance
+          image: {{ .MAINTENANCE_IMAGE_URL }}
+          resources:
+            limits:
+              cpu: 400m
+              memory: 400Mi
+            requests:
+              cpu: 50m
+              memory: 200Mi
+          securityContext:
+            runAsNonRoot: true
+          command:
+            - usr/bin/nc
+            - -v
+            - -lk
+            - 5555
