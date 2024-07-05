@@ -1,0 +1,80 @@
+---
+kind: pipeline
+name: build-scan-maintenance
+type: kubernetes
+
+platform:
+ os: linux
+ arch: amd64
+
+steps:
+- name: build-maintenance-image
+  pull: if-not-exists
+  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+  commands:
+  # wait for docker service to come up
+  - n=0; while [ "$n" -lt 60 ] && [ ! -e /var/run/docker.sock ]; do n=$(( n + 1 )); sleep 1; done
+  - docker build --no-cache -t sas/hof-maintenance:$${DRONE_COMMIT_SHA}
+  volumes:
+  - name: dockersock
+    path: /var/run
+
+- name: scan-maintenance-image
+  pull: always
+  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/trivy/client:latest
+  resources:
+    limits:
+      cpu: 1000
+      memory: 1024Mi
+  environment:
+    IMAGE_NAME: sas/hof-maintenance:${DRONE_COMMIT_SHA}
+    SEVERITY: HIGH,CRITICAL
+    FAIL_ON_DETECTION: false
+    IGNORE_UNFIXED: true
+  depends_on:
+    - build-maintenance-image
+
+services:
+  - name: docker
+    image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
+
+volumes:
+ - name: dockersock
+   temp: {}
+
+trigger:
+  branch:
+  - main
+  event:
+  - push
+
+---
+kind: pipeline
+name: push-maintenance-ecr
+type: kubernetes
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: push_maintenance_ecr
+  pull: if-not-exists
+  image: plugins/ecr
+  environment:
+    AWS_REGION: eu-west-2
+  settings:
+    access_key:
+      from_secret: MAINTENANCE_AWS_ACCESS_KEY_ID
+    secret_key:
+      from_secret: MAINTENANCE_AWS_SECRET_ACCESS_KEY
+    repo: sas/hof-maintenance
+    registry: 340268328991.dkr.ecr.eu-west-2.amazonaws.com
+    dockerfile: ./Dockerfile
+    tags:
+     - latest
+     - ${DRONE_COMMIT_SHA}
+
+trigger:
+  event:
+  - tag

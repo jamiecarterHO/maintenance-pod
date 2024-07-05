@@ -17,7 +17,6 @@ spec:
     metadata:
       labels:
         project: hof
-        sql-proxy-client: iia
         name: hof-maintenance
         app: hof-maintenance
     spec:
@@ -27,7 +26,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: hof-maintenance
-          image: {{ .MAINTENANCE_IMAGE_URL }}
+          image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/sas/hof-maintenance:latest
           resources:
             limits:
               cpu: 400m
@@ -41,4 +40,4 @@ spec:
             - usr/bin/nc
             - -v
             - -lk
-            - 5555
+            - "5555"

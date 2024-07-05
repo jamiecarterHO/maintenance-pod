@@ -12,7 +12,7 @@ echo What is your name?
 read name
 echo "==================="
 echo Thank you $name, deploying now.
- 
+
 kubectl --context=$KUBE_CONTEXT -n $NAMESPACE apply -f maintenance-deployment.yml
 
 echo "==================="

@@ -2,7 +2,7 @@ version: '3'
 services:
   hof-maintenance:
     build: .
-    ports: 
+    ports:
       - 7000:7000
     command: usr/bin/nc -vlk 5555
 
