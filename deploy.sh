@@ -16,5 +16,5 @@ echo Thank you $name, deploying now.
 kubectl --context=$KUBE_CONTEXT -n $NAMESPACE apply -f maintenance-deployment.yml
 
 echo "==================="
-echo Hi $name, deployment is complete. You can exec to the container now.
+echo Hi $name, deployment is complete. You can attempt exec to the container now.
 
